@@ -1,0 +1,1140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#171218">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>PRAITH Notes</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#171218;--surface:#211b23;--surface2:#2b252e;--surface3:#342d37;
+  --text:#f6eff7;--muted:#b7aeb8;--line:#3c3540;--accent:#9a5cc8;
+  --accent2:#d7a4f1;--danger:#ff8188;--good:#9dd7a8;
+  --radius:18px;--ease:cubic-bezier(.2,.8,.2,1)
+}
+body.light{
+  --bg:#f7f5f7;--surface:#fff;--surface2:#eeeaf0;--surface3:#e3dfe5;
+  --text:#28232a;--muted:#716b73;--line:#ddd7df;--accent:#7540a0;
+  --accent2:#63308b;--danger:#ba2734;--good:#2f7c3d
+}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);
+font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+body{overscroll-behavior-y:none}
+button,input,textarea,select{font:inherit}
+button{border:0;background:none;color:inherit}
+button:active{transform:scale(.97)}
+button:disabled{opacity:.45}
+.hidden{display:none!important}
+#app{min-height:100dvh;max-width:760px;margin:auto;position:relative}
+.screen{min-height:100dvh;animation:enter .18s var(--ease)}
+@keyframes enter{from{opacity:.2;transform:translateY(4px)}to{opacity:1;transform:none}}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:6px;
+padding:max(32px,calc(8px + env(safe-area-inset-top))) 14px 8px;background:color-mix(in srgb,var(--bg) 94%,transparent);
+backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.topbar h1{font-size:24px;font-weight:600;letter-spacing:-.5px;margin:0;flex:1}
+.icon{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;flex:none}
+.icon:hover,.icon:active{background:var(--surface2)}
+svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.search{height:50px;margin:2px 14px 11px;background:var(--surface);border:1px solid var(--line);
+border-radius:17px;display:flex;align-items:center;gap:9px;padding:0 14px;box-shadow:0 2px 10px #00000012}
+.search input{width:100%;border:0;outline:0;background:transparent;color:var(--text);font-size:16px}
+.content{padding:2px 14px calc(110px + env(safe-area-inset-bottom))}
+.section{margin:16px 4px 9px;color:var(--muted);font-size:13px;font-weight:750;text-transform:uppercase;letter-spacing:.75px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.list-view .grid{grid-template-columns:1fr}.list-view .note-card{min-height:92px}
+.note-card{position:relative;min-height:112px;border:1px solid var(--line);border-radius:17px;padding:15px;
+background:var(--surface);box-shadow:0 2px 8px #00000016;overflow:hidden;cursor:pointer;
+transition:transform .16s var(--ease),box-shadow .16s var(--ease)}
+.note-card:active{transform:scale(.985)}
+.note-card.selected{outline:2px solid var(--accent2);outline-offset:-2px;background:color-mix(in srgb,var(--accent2) 12%,var(--surface))}.note-card.selected::after{content:"✓";position:absolute;right:10px;bottom:10px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--accent2);color:#fff;font-weight:800;box-shadow:0 3px 10px #0005}.selection-bar{position:fixed;top:0;left:0;right:0;z-index:45;height:72px;padding:env(safe-area-inset-top) 10px 0;box-sizing:content-box;background:var(--bg);display:flex;align-items:center;gap:5px;border-bottom:1px solid var(--line);box-shadow:0 4px 18px #0003}.selection-bar .count{font-size:23px;font-weight:600;min-width:42px}.selection-bar .icon{width:48px;height:48px}
+.note-card h3{font-size:16px;line-height:1.25;margin:0 28px 7px 0}
+.card-rich{font-size:14px;line-height:1.42;color:var(--muted);display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}.card-rich p{margin:0}.card-rich h1,.card-rich h2{margin:.15em 0;font-weight:750;color:var(--text)}.note-card p{font-size:14px;line-height:1.42;color:var(--muted);margin:0;white-space:pre-wrap;
+display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}
+.pin{position:absolute;right:11px;top:11px;color:var(--muted)}
+.card-img{width:calc(100% + 30px);height:120px;object-fit:cover;margin:-15px -15px 12px;display:block}
+.card-check{display:flex;gap:8px;align-items:flex-start;font-size:14px;margin:3px 0;color:var(--text)}
+.card-check.done{text-decoration:line-through;color:var(--muted)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--accent2);margin-top:7px;flex:none}
+.empty{text-align:center;color:var(--muted);padding:90px 20px}
+.empty .big{font-size:54px;margin-bottom:10px}
+.fab{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:30;width:60px;height:60px;
+border-radius:19px;background:var(--accent);color:#fff;display:grid;place-items:center;box-shadow:0 8px 28px #00000055;
+font-size:32px;transition:transform .16s var(--ease)}
+.fab:active{transform:scale(.92)}
+.snackbar{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));z-index:100;
+transform:translate(-50%,18px);opacity:0;pointer-events:none;background:#2e2830;color:#fff;
+padding:11px 16px;border-radius:13px;font-size:14px;white-space:nowrap;transition:.2s}
+.snackbar.show{opacity:1;transform:translate(-50%,0)}
+/* drawer */
+.shade{position:fixed;inset:0;background:#0009;z-index:50;opacity:0;pointer-events:none;transition:.2s}
+.shade.show{opacity:1;pointer-events:auto}
+.drawer{position:fixed;left:0;top:0;bottom:0;width:min(88vw,370px);z-index:51;background:var(--bg);
+padding:calc(20px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));
+transform:translateX(-105%);transition:transform .25s var(--ease);box-shadow:8px 0 30px #00000045;overflow:auto}
+.drawer.show{transform:none}
+.drawer h1{font-size:25px;font-weight:600;margin:0 18px 24px}
+.nav{height:56px;width:100%;border-radius:29px;display:flex;align-items:center;gap:21px;padding:0 18px;text-align:left;font-size:16px;font-weight:600}
+.nav.active{background:var(--accent);color:#fff}
+.nav:active{background:var(--surface2)}
+.nav.active:active{background:var(--accent)}
+.nav .navico{width:27px;text-align:center;display:grid;place-items:center}
+.navline{height:1px;background:var(--line);margin:12px 18px}
+/* menus/dialogs */
+.pop{position:fixed;right:15px;z-index:80;background:var(--surface);border:1px solid var(--line);border-radius:15px;
+box-shadow:0 8px 30px #00000045;padding:6px;display:none;min-width:205px}
+.pop.show{display:block}
+.pop button{width:100%;text-align:left;padding:12px 13px;border-radius:10px}
+.pop button:active{background:var(--surface2)}
+.dialog-wrap{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;padding:20px;background:#0009}
+.dialog-wrap.show{display:flex}
+.dialog{width:min(100%,420px);background:var(--surface);border-radius:22px;border:1px solid var(--line);
+box-shadow:0 16px 50px #00000055;padding:20px;animation:dialogIn .18s var(--ease)}
+@keyframes dialogIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+.dialog h2{margin:0 0 15px;font-size:21px}
+.dialog input,.dialog textarea,.dialog select{width:100%;border:1px solid var(--line);background:var(--surface2);
+color:var(--text);border-radius:13px;padding:12px;outline:0;margin-bottom:10px}
+.dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+.action{padding:10px 15px;border-radius:12px;font-weight:650}
+.action.primary{background:var(--accent);color:#fff}.action.secondary{background:var(--surface2)}
+.action.danger{color:var(--danger)}
+/* editor */
+.editor-screen{display:none;min-height:100dvh;background:var(--bg)}
+.editor-screen.show{display:block;animation:enter .2s var(--ease)}
+.editor-top{position:sticky;top:0;z-index:25;display:flex;align-items:center;gap:5px;
+padding:calc(7px + env(safe-area-inset-top)) 12px 7px;background:color-mix(in srgb,var(--bg) 94%,transparent);
+backdrop-filter:blur(16px)}
+.editor-top .spacer{flex:1}
+.round{width:47px;height:47px;border-radius:15px;background:var(--surface2);display:grid;place-items:center}
+.round:hover{background:var(--surface3)}
+.note-editor{max-width:760px;margin:auto;padding:14px 35px calc(115px + env(safe-area-inset-bottom))}
+.note-title-input{width:100%;border:0;outline:0;background:transparent;color:var(--text);
+font-size:38px;line-height:1.18;font-weight:500;margin:24px 0 28px}
+.note-body-input{width:100%;min-height:52dvh;resize:none;border:0;outline:0;background:transparent;color:var(--text);
+font-size:17px;line-height:1.58}.rich-editor:empty:before{content:attr(data-placeholder);color:var(--muted);pointer-events:none}.rich-editor h1{font-size:30px;line-height:1.2;margin:.5em 0}.rich-editor h2{font-size:24px;line-height:1.25;margin:.5em 0}.rich-editor p{margin:.15em 0}.rich-editor a{color:var(--accent2);text-decoration:underline}
+.editor-checks{display:none}
+.editor-checks.show{display:block}
+.check-row{display:flex;gap:10px;align-items:flex-start;margin:4px 0 10px}
+.check-row input[type=checkbox]{width:21px;height:21px;margin-top:4px;accent-color:var(--accent)}
+.check-row input[type=text]{flex:1;border:0;outline:0;background:transparent;color:var(--text);font-size:17px}
+.check-row.done input[type=text]{text-decoration:line-through;color:var(--muted)}
+.add-check{color:var(--muted);padding:10px 0;font-size:15px}
+.link-card{display:flex;min-height:88px;border:1px solid var(--line);background:var(--surface);border-radius:16px;
+overflow:hidden;margin:13px 0;color:var(--text);text-decoration:none}
+.link-thumb{width:112px;background:var(--surface2);display:grid;place-items:center;flex:none;font-size:31px;color:var(--muted)}
+.link-info{padding:13px;min-width:0;flex:1}.link-title{font-size:15px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.link-host{font-size:12px;color:var(--muted);margin-top:5px}
+.editor-tools{position:fixed;left:0;right:0;bottom:0;z-index:24;max-width:760px;margin:auto;
+display:flex;align-items:center;gap:4px;padding:8px 27px calc(8px + env(safe-area-inset-bottom));
+background:linear-gradient(transparent,var(--bg) 25%)}
+.tool{width:49px;height:49px;border-radius:50%;display:grid;place-items:center;font-size:21px}
+.tool:hover,.tool:active{background:var(--surface2)}
+.editor-tools .spacer{flex:1}
+.attachment-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.attachment{position:relative;width:92px;height:92px;border-radius:13px;overflow:hidden;background:var(--surface2);border:1px solid var(--line)}
+.attachment img{width:100%;height:100%;object-fit:cover}.attachment audio{width:100%;height:100%}
+.attachment .x{position:absolute;right:4px;top:4px;width:26px;height:26px;border-radius:50%;background:#000a;color:#fff}
+
+/* premium editor formatting + style sheet */
+.format-tools{position:fixed;left:0;right:0;bottom:66px;z-index:25;max-width:760px;margin:auto;display:flex;align-items:center;gap:3px;padding:5px 14px 7px;background:color-mix(in srgb,var(--bg) 96%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);overflow-x:auto}
+.format-tools button{min-width:45px;height:45px;padding:0 9px;border-radius:13px;font-size:18px;display:grid;place-items:center}
+.format-tools button.active,.format-tools button:active{background:var(--surface2)}
+.format-tools span{height:30px;width:1px;background:var(--line);margin:0 3px;flex:none}
+.sheet-wrap{position:fixed;inset:0;z-index:95;display:none;align-items:flex-end;background:#0009}
+.sheet-wrap.show{display:flex}
+.sheet{width:100%;max-width:760px;margin:auto;background:var(--surface);border-radius:28px 28px 0 0;padding:22px 18px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -12px 40px #00000055;animation:sheetIn .22s var(--ease);max-height:76dvh;overflow:auto}
+@keyframes sheetIn{from{transform:translateY(30px);opacity:.5}to{transform:none;opacity:1}}
+.sheet h2{font-size:25px;margin:0 0 18px 5px}
+.swatches{display:flex;gap:14px;overflow-x:auto;padding:4px 3px 14px}
+.swatch{width:58px;height:58px;border-radius:50%;border:1px solid #ffffff55;flex:none;position:relative;font-size:28px}
+.swatch.selected{outline:3px solid var(--accent2);outline-offset:3px}
+.bg-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.bg-choice{aspect-ratio:1;border-radius:50%;border:1px solid #ffffff55;overflow:hidden;position:relative}
+.bg-choice.selected{outline:3px solid var(--accent2);outline-offset:2px}
+.bg-choice span{position:absolute;inset:0;display:grid;place-items:center;font-size:28px;opacity:.75}
+.label-edit-row{display:flex;align-items:center;gap:16px;min-height:65px}
+.label-edit-row .tagicon{width:48px;flex:none;color:var(--text)}
+.label-edit-row .labelname{flex:1;font-size:17px;text-align:left}
+.label-edit-row .pencil{width:48px;height:48px;border-radius:50%;display:grid;place-items:center}
+.label-edit-row .pencil:active{background:var(--surface2)}
+/* utility screens */
+.page-body{padding:9px 28px calc(40px + env(safe-area-inset-bottom))}
+.page-section-title{font-size:29px;font-weight:600;margin:28px 0 18px}
+.list-item{display:flex;align-items:center;gap:18px;padding:17px 0;border-bottom:1px solid var(--line)}
+.list-item .li-icon{width:44px;height:44px;border-radius:50%;background:var(--surface2);display:grid;place-items:center;flex:none}
+.list-item .li-text{font-size:17px;line-height:1.3}
+.list-item small{display:block;color:var(--muted);font-size:13px;margin-top:3px}
+.help-card{padding:17px 0}
+.help-card .li-icon{background:var(--surface2)}
+.search-help{height:54px;border-radius:28px;background:var(--surface2);border:0;display:flex;align-items:center;gap:10px;padding:0 17px;margin:18px 0}
+.search-help input{border:0;outline:0;background:transparent;color:var(--text);width:100%;font-size:16px}
+.settings-group{margin:25px 0}
+.settings-group h2{font-size:28px;margin:0 0 10px}
+.setting-row{min-height:65px;display:flex;align-items:center;gap:15px;padding:8px 0}
+.setting-row .grow{flex:1}.setting-row .name{font-size:16px}.setting-row .sub{font-size:13px;color:var(--muted);margin-top:4px}
+.switch{width:58px;height:34px;border-radius:18px;background:var(--surface3);padding:4px;display:flex;align-items:center;transition:.18s}
+.switch:after{content:"";width:26px;height:26px;border-radius:50%;background:#a6a4a7;transition:.18s}
+.switch.on{background:#9bbef9}.switch.on:after{background:#16488e;transform:translateX(24px)}
+.select-row{display:flex;align-items:center;justify-content:space-between;min-height:58px}
+.select-row button{color:var(--muted)}
+.trash-empty{min-height:72dvh;display:grid;place-items:center;text-align:center;color:var(--muted)}
+.trash-empty svg{width:110px;height:110px;stroke:var(--text);stroke-width:1.5;margin-bottom:18px}
+.reminder-card{padding:16px;border:1px solid var(--line);background:var(--surface);border-radius:16px;margin-bottom:10px}
+.reminder-card strong{font-size:16px}.reminder-card small{display:block;color:var(--muted);margin-top:5px}
+.label-chip{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:20px;background:var(--surface2);margin:5px 4px 0 0;font-size:13px}
+.toast-space{height:1px}
+@media(min-width:600px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.note-editor{padding-left:50px;padding-right:50px}}
+
+/* ---------------- Google account / profile ---------------- */
+.profile-btn{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;flex:none;overflow:hidden;
+  border:1px solid var(--line);background:var(--surface);color:var(--muted);padding:0}
+.profile-btn:active{transform:scale(.96)}
+.profile-btn svg{width:28px;height:28px}
+.profile-btn img{width:100%;height:100%;object-fit:cover}
+.account-sheet{width:min(390px,calc(100vw - 28px));margin:0 auto;background:var(--surface);
+  border:1px solid var(--line);border-radius:24px;padding:18px;box-shadow:0 18px 55px #00000055}
+.account-head{display:flex;align-items:center;gap:13px;margin-bottom:16px}
+.account-avatar{width:58px;height:58px;border-radius:50%;overflow:hidden;display:grid;place-items:center;
+  background:var(--surface2);color:var(--text);font-size:22px;font-weight:700;flex:none}
+.account-avatar img{width:100%;height:100%;object-fit:cover}
+.account-name{font-size:18px;font-weight:650}
+.account-email{font-size:13px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis}
+.account-status{font-size:12px;color:var(--good);margin-top:4px}
+.google-login-wrap{display:flex;justify-content:center;min-height:44px;margin:14px 0}
+.account-note{font-size:12px;line-height:1.45;color:var(--muted);margin:12px 2px 2px}
+.account-danger{color:var(--danger)!important}
+/* ---------------- Device frame alignment ---------------- */
+:root{--frame-top:max(62px,env(safe-area-inset-top));--frame-bottom:max(20px,env(safe-area-inset-bottom))}
+html,body{width:100%;min-height:100%;overflow-x:hidden}
+#app{width:100%;max-width:760px;min-height:100svh}
+.topbar{padding:calc(var(--frame-top) + 0px) 14px 8px}
+.selection-bar{padding-top:var(--frame-top);height:calc(72px + var(--frame-top));box-sizing:border-box}
+.drawer{padding-top:calc(var(--frame-top) + 20px);padding-bottom:calc(18px + var(--frame-bottom))}
+.editor-top{padding-top:calc(var(--frame-top) + 0px);}
+.fab{bottom:var(--frame-bottom)}
+.snackbar{bottom:calc(90px + var(--frame-bottom))}
+.note-editor{padding-bottom:calc(115px + var(--frame-bottom))}
+.editor-tools{padding-bottom:calc(8px + var(--frame-bottom))}
+.sheet{padding-bottom:calc(20px + var(--frame-bottom))}
+.page-body{padding-bottom:calc(40px + var(--frame-bottom))}
+</style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+<div id="app">
+  <div id="homeScreen" class="screen">
+    <div class="topbar">
+      <button class="icon" id="menuBtn" aria-label="Open menu"></button>
+      <h1>PRAITH Notes</h1>
+      <button class="icon" id="viewBtn" aria-label="Change view"></button>
+      <button class="profile-btn" id="profileBtn" aria-label="Google account" title="Google account"></button>
+      <button class="icon" id="homeMoreBtn" aria-label="More"></button>
+    </div>
+    <div class="search"><span id="searchIcon"></span><input id="searchInput" placeholder="Search your notes" autocomplete="off"></div>
+    <main class="content">
+      <div id="pinnedSection"><div class="section">Pinned</div><div class="grid" id="pinnedGrid"></div></div>
+      <div class="section" id="notesSection">Notes</div>
+      <div class="grid" id="notesGrid"></div>
+      <div class="empty hidden" id="homeEmpty"><div class="big">📝</div><div>No notes yet</div><small>Tap + to create your first note.</small></div>
+    </main>
+    <button class="fab" id="fab" aria-label="Create note">+</button>
+  </div>
+
+  <div id="editorScreen" class="editor-screen">
+    <div class="editor-top">
+      <button class="round" id="editorBack"></button>
+      <div class="spacer"></div>
+      <button class="round" id="editorPin" title="Pin"></button>
+      <button class="round" id="editorReminder" title="Reminder"></button>
+      <button class="round" id="editorArchive" title="Archive"></button>
+    </div>
+    <div class="note-editor">
+      <input class="note-title-input" id="noteTitle" placeholder="Title" autocomplete="off">
+      <div class="note-body-input rich-editor" id="noteBody" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Write a note..." spellcheck="true"></div>
+      <div class="editor-checks" id="checkEditor"></div>
+      <div id="attachmentRow" class="attachment-row"></div>
+      <div id="linkPreviewArea"></div>
+    </div>
+    <div class="format-tools" id="formatTools">
+      <button data-format="h1">H1</button>
+      <button data-format="h2">H2</button>
+      <button class="active" data-format="plain">Aa</button>
+      <span></span>
+      <button data-format="bold"><b>B</b></button>
+      <button data-format="italic"><i>I</i></button>
+      <button data-format="underline"><u>U</u></button>
+      <button data-format="strike"><s>S</s></button>
+      <button data-format="clear">×</button>
+    </div>
+    <div class="editor-tools">
+      <button class="tool" id="attachBtn" title="Add attachment"></button>
+      <button class="tool" id="colorBtn" title="Color & background"></button>
+      <button class="tool" id="typeBtn" title="Note type"></button>
+      <div class="spacer"></div>
+      <button class="tool" id="editorMoreBtn" title="More"></button>
+    </div>
+  </div>
+
+  <div id="drawerShade" class="shade"></div>
+  <aside id="drawer" class="drawer">
+    <h1>PRAITH Notes</h1>
+    <button class="nav active" data-route="notes"><span class="navico" id="icoNotes"></span>Notes</button>
+    <button class="nav" data-route="reminders"><span class="navico" id="icoReminder"></span>Reminders</button>
+    <button class="nav" id="createLabelBtn"><span class="navico">＋</span>Create new label</button>
+    <button class="nav" id="editLabelsBtn"><span class="navico">✎</span>Edit labels</button>
+    <div class="navline"></div>
+    <button class="nav" data-route="archive"><span class="navico" id="icoArchive"></span>Archive</button>
+    <button class="nav" data-route="trash"><span class="navico" id="icoTrash"></span>Trash</button>
+    <button class="nav" data-route="settings"><span class="navico" id="icoSettings"></span>Settings</button>
+    <button class="nav" data-route="help"><span class="navico" id="icoHelp"></span>Help & feedback</button>
+    <div class="navline"></div>
+    <div id="labelList"></div>
+  </aside>
+
+  <div id="homePop" class="pop" style="top:68px">
+    <button id="sortBtn">↕ Sort by updated</button>
+    <button id="themeBtn">☾ Toggle dark mode</button>
+    <button id="exportBtn">⇩ Export notes</button>
+    <button id="importBtn">⇧ Import notes</button>
+    <button id="selectNotesBtn">☑ Select notes</button><button id="deleteAllBtn" style="color:var(--danger)">⌫ Move all to Trash</button>
+  </div>
+
+  <input id="fileInput" type="file" accept="image/*,audio/*,.txt,.json" class="hidden">
+  <input id="imageInput" type="file" accept="image/*" multiple class="hidden">
+
+  <div id="editorPop" class="pop" style="bottom:70px;top:auto">
+    <button id="shareBtn">↗ Share note</button>
+    <button id="labelNoteBtn"># Label note</button>
+    <button id="duplicateBtn">▣ Duplicate note</button>
+    <button id="labelBtn"># Add label</button>
+    <button id="deleteBtn" style="color:var(--danger)">🗑 Move to Trash</button>
+  </div>
+
+  <div id="dialog" class="dialog-wrap">
+    <div class="dialog" id="dialogBox"></div>
+  </div>
+  <div id="accountDialog" class="dialog-wrap">
+    <div class="account-sheet" id="accountDialogBox"></div>
+  </div>
+
+  <div id="styleSheet" class="sheet-wrap"><div class="sheet" id="styleSheetBox"></div></div>
+  <div id="snackbar" class="snackbar"></div>
+
+  <canvas id="drawCanvas" class="hidden"></canvas>
+  <audio id="audioPreview" class="hidden"></audio>
+</div>
+
+<script>
+/* ---------------- Icons ---------------- */
+const ICONS={
+ menu:'<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>',
+ search:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.8"/><path d="m16 16 5 5"/></svg>',
+ more:'<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>',
+ grid:'<svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><rect x="14" y="14" width="6" height="6"/></svg>',
+ list:'<svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>',
+ back:'<svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>',
+ pin:'<svg viewBox="0 0 24 24"><path d="m9 3 6 0 1 6 3 3-5 1-1 8-2-8-5-1 3-3z"/></svg>',
+ bell:'<svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>',
+ archive:'<svg viewBox="0 0 24 24"><path d="M4 5h16v4H4zM6 9v10h12V9M9 13h6"/></svg>',
+ unarchive:'<svg viewBox="0 0 24 24"><path d="M4 5h16v4H4zM6 9v10h12V9M9 13h6M12 18v-6m0 0-3 3m3-3 3 3"/></svg>',
+ plus:'<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+ color:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M8 10h.01M12 7h.01M16 10h.01M9 15h.01M15 15h.01"/></svg>',
+ type:'<svg viewBox="0 0 24 24"><path d="M5 5h14M12 5v14M8 19h8"/></svg>',
+ attach:'<svg viewBox="0 0 24 24"><path d="M12 20H7a3 3 0 0 1 0-6h10a3 3 0 0 0 0-6H8a4 4 0 0 0 0 8h8"/></svg>',
+ trash:'<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg>',
+ settings:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-1.7 1.7-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V22h-2.4v-.2a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.88.34l-.06.06-1.7-1.7.06-.06A1.7 1.7 0 0 0 6.4 15a1.7 1.7 0 0 0-1.56-1.03H4v-2.4h.84A1.7 1.7 0 0 0 6.4 10a1.7 1.7 0 0 0-.34-1.88L6 8.06l1.7-1.7.06.06a1.7 1.7 0 0 0 1.88.34 1.7 1.7 0 0 0 1.03-1.56V4h2.4v1.2a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 1.7 1.7-.06.06A1.7 1.7 0 0 0 17.6 10a1.7 1.7 0 0 0 1.56 1.03H20v2.4h-.84A1.7 1.7 0 0 0 19.4 15z"/></svg>',
+ help:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 4.1 1.92c-1.1.85-1.6 1.25-1.6 2.58M12 17h.01"/></svg>',
+};
+const $=id=>document.getElementById(id);
+for(const [id,key] of Object.entries({
+ menuBtn:'menu',viewBtn:'grid',homeMoreBtn:'more',searchIcon:'search',editorBack:'back',
+ editorPin:'pin',editorReminder:'bell',editorArchive:'archive',attachBtn:'attach',
+ colorBtn:'color',typeBtn:'type',editorMoreBtn:'more',icoNotes:'help',icoReminder:'bell',
+ icoArchive:'archive',icoTrash:'trash',icoSettings:'settings',icoHelp:'help'
+})) $(id).innerHTML=ICONS[key];
+
+/* ---------------- State ---------------- */
+const KEY="praith_notes_v4";
+const SETTINGS="praith_settings_v4";
+const LABELS_KEY="praith_labels_v1";
+function safeJSON(raw,fallback){try{return raw?JSON.parse(raw):fallback}catch(e){return fallback}}
+var notes=safeJSON(localStorage.getItem(KEY),null);
+if(!Array.isArray(notes)) notes=safeJSON(localStorage.getItem("praith_notes_v3"),null);
+if(!Array.isArray(notes)) notes=safeJSON(localStorage.getItem("praith_notes_v2"),null);
+if(!Array.isArray(notes)) notes=safeJSON(localStorage.getItem("praith_notes_v1"),[]);
+notes=Array.isArray(notes)?notes:[];
+notes=notes.map(normalizeNote);
+var settings=Object.assign({
+ theme:"dark",view:"grid",addBottom:true,moveCheckedBottom:true,richLinks:true,defaultChecklist:false,sharing:true
+},safeJSON(localStorage.getItem(SETTINGS),{}));
+var labels=safeJSON(localStorage.getItem(LABELS_KEY),[]);
+if(!Array.isArray(labels)) labels=[];
+labels=[...new Set(labels.map(x=>String(x).trim()).filter(Boolean))];
+// Recover labels that existed only on notes in older builds.
+notes.forEach(n=>{if(n.label&&!labels.includes(n.label))labels.push(n.label)});
+var currentId=null,currentType="text",currentChecks=[],currentAttachments=[],currentColor="",currentBackground="",sortNewest=true;
+var currentRoute="notes",reminderTimer=null,recording=null,recordChunks=[];
+var selectedIds=new Set(), selectionSource="notes", selectionArmed=false;
+
+/* ---------------- Helpers ---------------- */
+function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(16).slice(2)}
+var storageErrorShown=false;
+function save(){
+ try{localStorage.setItem(KEY,JSON.stringify(notes));storageErrorShown=false;return true}
+ catch(e){if(!storageErrorShown){storageErrorShown=true;toast("Could not save: device/browser storage is full or blocked")};console.error("PRAITH save failed",e);return false}
+}
+function saveSettings(){localStorage.setItem(SETTINGS,JSON.stringify(settings))}
+function saveLabels(){localStorage.setItem(LABELS_KEY,JSON.stringify(labels))}
+function legacyToHtml(v){
+ let x=String(v??"");
+ if(/<[^>]+>/.test(x)===false){x=esc(x).replace(/\*\*(.+?)\*\*/gs,"<strong>$1</strong>").replace(/~~(.+?)~~/gs,"<s>$1</s>").replace(/^##\s+(.+)$/gm,"<h2>$1</h2>").replace(/^#\s+(.+)$/gm,"<h1>$1</h1>").replace(/\*([^*]+)\*/g,"<em>$1</em>").replace(/(?:\r?\n){2,}/g,"</p><p>").replace(/\r?\n/g,"<br>"); return x?"<p>"+x+"</p>":""}
+ return sanitizeHtml(x)
+}
+function sanitizeHtml(html){
+ const t=document.createElement("template");t.innerHTML=String(html||"");
+ t.content.querySelectorAll("script,style,iframe,object,embed,form,meta,link").forEach(e=>e.remove());
+ t.content.querySelectorAll("*").forEach(e=>{[...e.attributes].forEach(a=>{if(a.name.startsWith("on")||a.name==="style"&&/url\s*\(|expression\s*\(/i.test(a.value))e.removeAttribute(a.name)});if(e.tagName==="A"){e.setAttribute("rel","noopener noreferrer");e.setAttribute("target","_blank");if(!/^https?:$/i.test(e.protocol))e.removeAttribute("href")}});
+ return t.innerHTML
+}
+function normalizeNote(n){return {id:n.id||uid(),title:String(n.title||""),body:legacyToHtml(n.body||""),pinned:!!n.pinned,archived:!!n.archived,deleted:!!n.deleted,updated:Number(n.updated)||Date.now(),color:n.color||"",background:n.background||"",type:n.type==="checklist"?"checklist":"text",checks:Array.isArray(n.checks)?n.checks.map(x=>({text:String(x.text||""),done:!!x.done})):[],attachments:Array.isArray(n.attachments)?n.attachments:[],label:String(n.label||""),reminder:n.reminder?Number(n.reminder):null}}
+function ensureCurrentNote(){
+ if(currentId){const existing=notes.find(x=>x.id===currentId);if(existing)return existing}
+ const data={id:uid(),title:$('noteTitle')?.value.trim()||"",body:sanitizeHtml($("noteBody")?.innerHTML||""),type:currentType,checks:structuredClone(currentChecks),attachments:structuredClone(currentAttachments),color:currentColor,background:currentBackground,pinned:false,archived:false,deleted:false,label:"",reminder:null,updated:Date.now()};
+ notes.unshift(data);currentId=data.id;save();return data
+}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function stripHtml(v){const t=document.createElement("template");t.innerHTML=String(v||"");return t.content.textContent||""}
+function toast(msg){
+ const s=$("snackbar");s.textContent=msg;s.classList.add("show");clearTimeout(window._toast);
+ window._toast=setTimeout(()=>s.classList.remove("show"),1800)
+}
+function formatDate(ts){
+ if(!ts)return "";
+ const d=new Date(ts),today=new Date();
+ const same=d.toDateString()===today.toDateString();
+ return same?d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}):d.toLocaleDateString([],{day:"numeric",month:"short"})
+}
+function activeNotes(){return notes.filter(n=>!n.deleted&&!n.archived)}
+function visibleList(list){
+ const q=$("searchInput")?.value.trim().toLowerCase()||"";
+ return list.filter(n=>!q||(n.title+" "+stripHtml(n.body)+" "+n.label).toLowerCase().includes(q))
+ .sort((a,b)=>sortNewest?b.updated-a.updated:a.updated-b.updated)
+}
+
+/* ---------------- Home ---------------- */
+function card(n){
+ const bg=n.color?`style="background:${n.color}"`:"";
+ let body="";
+ if(n.type==="checklist"){
+   body=n.checks.slice(0,4).map(x=>`<div class="card-check ${x.done?"done":""}"><span class="dot"></span><span>${esc(x.text)}</span></div>`).join("");
+   if(n.checks.length>4)body+=`<div style="color:var(--muted);font-size:12px;margin-top:5px">+${n.checks.length-4} more</div>`;
+   if(!body)body=`<p>Empty checklist</p>`;
+ }else{
+   const firstImage=n.attachments.find(a=>a.type==="image");
+   body=(firstImage?`<img class="card-img" src="${firstImage.data}" alt="">`:"")+`<div class="card-rich">${sanitizeHtml(n.body||"")}</div>`;
+ }
+ return `<article class="note-card ${selectedIds.has(n.id)?"selected":""}" ${bg} data-id="${n.id}">
+ ${n.pinned?`<span class="pin">${ICONS.pin}</span>`:""}
+ <h3>${esc(n.title||"Untitled")}</h3>
+ ${body}
+ ${n.reminder?`<div style="font-size:12px;color:var(--accent2);margin-top:8px">${ICONS.bell} ${formatDate(n.reminder)}</div>`:""}
+ ${n.label?`<div style="font-size:12px;color:var(--muted);margin-top:8px">#${esc(n.label)}</div>`:""}
+ </article>`
+}
+function clearSelection(){selectedIds.clear();selectionArmed=false;document.querySelector("#selectionBar")?.remove();}
+function selectedNotes(){return notes.filter(n=>selectedIds.has(n.id));}
+function ensureSelectionBar(){
+ if(!selectedIds.size){clearSelection();return}
+ document.querySelector("#selectionBar")?.remove();
+ const archivedContext=selectionSource==="archive";
+ const bar=document.createElement("div");bar.id="selectionBar";bar.className="selection-bar";
+ bar.innerHTML=`<button class="icon" id="selectionClose" aria-label="Clear selection">×</button><div class="count">${selectedIds.size}</div><button class="icon" id="selectionPin" title="Pin selected">${ICONS.pin}</button><button class="icon" id="selectionArchive" title="${archivedContext?"Unarchive":"Archive"}">${archivedContext?ICONS.unarchive:ICONS.archive}</button><button class="icon" id="selectionMore" title="More">${ICONS.more}</button>`;
+ document.body.appendChild(bar);
+ $("selectionClose").onclick=clearSelection;
+ $("selectionPin").onclick=bulkPin;
+ $("selectionArchive").onclick=bulkArchive;
+ $("selectionMore").onclick=selectionMenu;
+}
+function enterSelection(id,source=currentRoute){selectionSource=source;selectionArmed=true;selectedIds.add(id);renderCurrentSelectionView()}
+function toggleSelection(id){if(selectedIds.has(id))selectedIds.delete(id);else selectedIds.add(id);if(!selectedIds.size){clearSelection();renderCurrentRoute();}else renderCurrentSelectionView()}
+function renderCurrentSelectionView(){if(currentRoute==="notes")renderHome(true);else if(currentRoute==="archive")renderArchive(true);else if(currentRoute==="label")openLabel(window._activeLabel,true);else{ensureSelectionBar();document.querySelectorAll(".note-card[data-id]").forEach(el=>el.classList.toggle("selected",selectedIds.has(el.dataset.id)))}}
+function bindSelectableCards(root="#homeScreen"){
+ document.querySelectorAll(`${root} .note-card[data-id]`).forEach(el=>{
+  let timer=null,moved=false;const id=el.dataset.id;
+  el.addEventListener("pointerdown",()=>{moved=false;timer=setTimeout(()=>{timer=null;enterSelection(id,currentRoute)},480)},{passive:true});
+  el.addEventListener("pointermove",()=>{moved=true;if(timer){clearTimeout(timer);timer=null}},{passive:true});
+  el.addEventListener("pointerup",()=>{if(timer){clearTimeout(timer);timer=null}},{passive:true});
+  el.addEventListener("pointercancel",()=>{if(timer){clearTimeout(timer);timer=null}},{passive:true});
+  el.onclick=()=>{if(moved)return;if(selectedIds.size||selectionArmed)toggleSelection(id);else openEditor(id)};
+ });
+}
+function bulkPin(){const arr=selectedNotes();if(!arr.length)return;const shouldPin=arr.some(n=>!n.pinned);arr.forEach(n=>n.pinned=shouldPin);save();toast(shouldPin?`Pinned ${arr.length} notes`:`Unpinned ${arr.length} notes`);clearSelection();renderCurrentRoute()}
+function bulkArchive(){const arr=selectedNotes();if(!arr.length)return;const unarchive=selectionSource==="archive";arr.forEach(n=>{n.archived=!unarchive;n.deleted=false;n.updated=Date.now()});save();toast(unarchive?`Unarchived ${arr.length} notes`:`Archived ${arr.length} notes`);clearSelection();renderCurrentRoute()}
+function bulkDelete(){const arr=selectedNotes();if(!arr.length)return;arr.forEach(n=>{n.deleted=true;n.archived=false;n.updated=Date.now()});save();toast(`Moved ${arr.length} notes to Trash`);clearSelection();renderCurrentRoute()}
+function bulkCopy(){const arr=selectedNotes();if(!arr.length)return;const copies=arr.map(n=>normalizeNote({...n,id:uid(),title:n.title?`${n.title} (Copy)`:"Untitled (Copy)",pinned:false,archived:false,deleted:false,updated:Date.now()}));notes=[...copies,...notes];save();toast(`Copied ${copies.length} notes`);clearSelection();renderCurrentRoute()}
+async function bulkShare(){const arr=selectedNotes();if(!arr.length)return;const text=arr.map(n=>`${n.title||"Untitled"}\n${stripHtml(n.body||"")}`).join("\n\n──────────\n\n");try{if(navigator.share)await navigator.share({title:`${arr.length} PRAITH Notes`,text});else if(navigator.clipboard){await navigator.clipboard.writeText(text);toast("Selected notes copied to clipboard")}else toast("Sharing unavailable")}catch(e){if(e?.name!=="AbortError")toast("Share unavailable")}}
+function visibleCardsIds(){return [...document.querySelectorAll(".note-card[data-id]")].map(e=>e.dataset.id)}
+function selectAllVisible(){selectionArmed=true;visibleCardsIds().forEach(id=>selectedIds.add(id));ensureSelectionBar();document.querySelectorAll(".note-card[data-id]").forEach(e=>e.classList.add("selected"))}
+function bulkLabel(){const arr=selectedNotes();if(!arr.length)return;const opts=[...new Set(labels)].sort();dialog(`<h2>Label selected notes</h2><select id="bulkLabelSelect"><option value="">No label</option>${opts.map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join("")}</select><div class="dialog-actions"><button class="action secondary" id="cancelDialog">Cancel</button><button class="action primary" id="saveBulkLabel">Apply</button></div>`);$("cancelDialog").onclick=closeDialog;$("saveBulkLabel").onclick=()=>{const l=$("bulkLabelSelect").value;arr.forEach(n=>n.label=l);save();closeDialog();clearSelection();renderCurrentRoute();toast(l?`Label applied to ${arr.length} notes`:`Labels removed from ${arr.length} notes`)}}
+function selectionMenu(){const arr=selectedNotes();if(!arr.length)return;dialog(`<h2>${arr.length} selected</h2><div class="dialog-list"><button class="list-item" id="selCopy"><span class="li-text">Make a copy</span></button><button class="list-item" id="selShare"><span class="li-text">Send / Share</span></button><button class="list-item" id="selLabel"><span class="li-text">Add or change label</span></button><button class="list-item" id="selSelectAll"><span class="li-text">Select all visible</span></button><button class="list-item" id="selDelete" style="color:var(--danger)"><span class="li-text">Delete selected</span></button></div>`);$("selCopy").onclick=()=>{closeDialog();bulkCopy()};$("selShare").onclick=()=>{closeDialog();bulkShare()};$("selLabel").onclick=()=>{closeDialog();bulkLabel()};$("selSelectAll").onclick=()=>{closeDialog();selectAllVisible()};$("selDelete").onclick=()=>{closeDialog();if(confirm(`Move ${arr.length} notes to Trash?`))bulkDelete()}}
+function renderCurrentRoute(){if(currentRoute==="notes")renderHome();else if(currentRoute==="archive")renderArchive();else if(currentRoute==="label")openLabel(window._activeLabel);else if(currentRoute==="trash")renderTrash();else if(currentRoute==="reminders")renderReminders()}
+function renderHome(keepSelection=false){
+ const list=visibleList(activeNotes());const pins=list.filter(n=>n.pinned),normal=list.filter(n=>!n.pinned);
+ $("pinnedSection").style.display=pins.length?"block":"none";$("pinnedGrid").innerHTML=pins.map(card).join("");
+ $("notesSection").style.display=normal.length?"block":"none";$("notesGrid").innerHTML=normal.map(card).join("");
+ $("homeEmpty").classList.toggle("hidden",list.length>0);bindSelectableCards("#homeScreen");if(selectedIds.size)ensureSelectionBar();renderLabels();
+}
+function renderLabels(){
+ const allLabels=[...new Set([...labels,...notes.filter(n=>n.label&&!n.deleted).map(n=>n.label)])].sort();
+ $("labelList").innerHTML=allLabels.length?`<div class="section" style="margin-left:18px">Labels</div>`+
+ allLabels.map(l=>`<button class="nav labelNav" data-label="${esc(l)}"><span class="navico">#</span>${esc(l)}</button>`).join(""):"";
+ document.querySelectorAll(".labelNav").forEach(b=>b.onclick=()=>{
+   closeDrawer();openLabel(b.dataset.label)
+ });
+}
+function openLabel(label,keepSelection=false){
+ currentRoute="label";window._activeLabel=label;selectionSource="label";
+ const list=notes.filter(n=>!n.deleted&&!n.archived&&n.label===label).sort((a,b)=>sortNewest?b.updated-a.updated:a.updated-b.updated);
+ $("homeScreen").classList.remove("hidden");$("editorScreen").classList.remove("show");
+ $("homeScreen").innerHTML=`<div class="topbar"><button class="icon" id="labelBack">${ICONS.back}</button><h1>${esc(label)}</h1><button class="icon" id="labelMore">${ICONS.more}</button></div><main class="content"><div class="grid" id="labelGrid">${list.map(card).join("")}</div>${!list.length?`<div class="empty"><div class="big">#</div><div>No notes with this label</div></div>`:""}</main>`;
+ $("labelBack").onclick=()=>restoreHome();
+ $("labelMore").onclick=()=>showLabelEditor(label);
+ bindSelectableCards("#labelGrid");if(!keepSelection)clearSelection();else if(selectedIds.size)ensureSelectionBar();
+}
+$("searchInput").oninput=()=>{if(currentRoute==="notes")renderHome()};
+
+/* ---------------- Editor ---------------- */
+function openEditor(id=null){
+ if(!$("editorScreen").classList.contains("show")){try{history.pushState({editor:true},"")}catch(e){}}
+ currentId=id; const n=id?notes.find(x=>x.id===id):null;
+ currentType=n?.type||((settings.defaultChecklist)?"checklist":"text");
+ currentChecks=structuredClone(n?.checks||[]);
+ currentAttachments=structuredClone(n?.attachments||[]);
+ currentColor=n?.color||"";currentBackground=n?.background||"";
+ $("noteTitle").value=n?.title||"";
+ $("noteBody").innerHTML=n?.body?sanitizeHtml(n.body):"";
+ $("noteBody").style.display=currentType==="text"?"block":"none";
+ $("checkEditor").classList.toggle("show",currentType==="checklist");
+ $("editorPin").style.opacity=n?.pinned?1:.55;
+ $("editorArchive").style.opacity=n?.archived?1:.55;
+ $("editorScreen").classList.add("show");$("homeScreen").classList.add("hidden");
+ $("editorPop").classList.remove("show");
+ renderChecks();renderAttachments();renderLinks();applyEditorBackground();updateTypeButton();
+ setTimeout(()=>$(currentType==="checklist"?"checkEditor":"noteTitle").focus(),130);
+}
+function collectEditor(){
+ const n=currentId?notes.find(x=>x.id===currentId):null;
+ const data={title:$("noteTitle").value.trim(),body:sanitizeHtml($("noteBody").innerHTML||""),type:currentType,
+ checks:structuredClone(currentChecks),attachments:structuredClone(currentAttachments),color:currentColor,background:currentBackground,
+ pinned:n?.pinned||false,archived:n?.archived||false,deleted:n?.deleted||false,
+ label:n?.label||"",reminder:n?.reminder||null,updated:Date.now()};
+ if(currentId&&n){Object.assign(n,data)}else{data.id=uid();notes.unshift(data);currentId=data.id}
+ if(data.label&&!labels.includes(data.label)){labels.push(data.label);saveLabels()}
+ save();return data
+}
+function closeEditor(saveIt=true){
+ clearTimeout(autoTimer);autoTimer=null;
+ if(saveIt){
+   const title=$("noteTitle").value.trim(),body=$("noteBody").innerText.trim();
+   const hasContent=title||body||currentChecks.some(x=>x.text.trim())||currentAttachments.length;
+   if(hasContent)collectEditor();
+ }
+ $("editorScreen").classList.remove("show");$("homeScreen").classList.remove("hidden");
+ currentId=null;renderHome();scheduleReminders();
+}
+$("editorBack").onclick=()=>closeEditor(true);
+$("noteTitle").oninput=()=>autosave();
+$("noteBody").oninput=()=>{renderLinks();autosave()};
+$("noteBody").onpaste=e=>{e.preventDefault();const txt=(e.clipboardData||window.clipboardData).getData("text/plain");document.execCommand("insertText",false,txt)};
+var autoTimer=null;
+function editorHasContent(){
+ return !!($("noteTitle")?.value.trim()||$("noteBody")?.innerText.trim()||currentChecks.some(x=>x.text.trim())||currentAttachments.length)
+}
+function flushAutosave(){
+ clearTimeout(autoTimer);autoTimer=null;
+ if($("editorScreen")?.classList.contains("show")&&editorHasContent())collectEditor()
+}
+function autosave(){
+ clearTimeout(autoTimer);
+ autoTimer=setTimeout(flushAutosave,250)
+}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")flushAutosave()});
+window.addEventListener("pagehide",flushAutosave);
+window.addEventListener("beforeunload",flushAutosave);
+
+function renderChecks(){
+ const ordered=(settings.moveCheckedBottom?currentChecks.map((x,idx)=>({x,idx})).sort((a,b)=>Number(a.x.done)-Number(b.x.done)):currentChecks.map((x,idx)=>({x,idx})));
+ $("checkEditor").innerHTML=ordered.map((o,i)=>{const x=o.x; const idx=o.idx; return`<div class="check-row ${x.done?"done":""}">
+ <input type="checkbox" data-i="${idx}" ${x.done?"checked":""}>
+ <input type="text" data-t="${idx}" value="${esc(x.text)}" placeholder="List item">
+ <button class="icon" style="width:34px;height:34px" data-x="${idx}">×</button>
+ </div>`}).join("")+
+ `<button class="add-check" id="addCheck">＋ Add item</button>`;
+ document.querySelectorAll("#checkEditor [data-i]").forEach(el=>el.onchange=()=>{currentChecks[+el.dataset.i].done=el.checked;renderChecks();autosave()});
+ document.querySelectorAll("#checkEditor [data-t]").forEach(el=>el.oninput=()=>{currentChecks[+el.dataset.t].text=el.value;autosave()});
+ document.querySelectorAll("#checkEditor [data-x]").forEach(el=>el.onclick=()=>{currentChecks.splice(+el.dataset.x,1);renderChecks();autosave()});
+ $("addCheck").onclick=()=>{const item={text:"",done:false};if(settings.addBottom)currentChecks.push(item);else currentChecks.unshift(item);renderChecks();setTimeout(()=>document.querySelector('#checkEditor [data-t]:last-of-type')?.focus(),30)}
+}
+function renderAttachments(){
+ $("attachmentRow").innerHTML=currentAttachments.map((a,i)=>{
+  if(a.type==="image")return `<div class="attachment"><img src="${a.data}" alt=""><button class="x" data-a="${i}">×</button></div>`;
+  if(a.type==="audio")return `<div class="attachment" style="width:170px"><audio controls src="${a.data}"></audio><button class="x" data-a="${i}">×</button></div>`;
+  return `<a class="attachment" style="padding:12px;text-decoration:none;color:var(--text);display:flex;align-items:center;justify-content:center;text-align:center" href="${esc(a.data)}" download="${esc(a.name)}">${esc(a.name)}<button class="x" data-a="${i}" type="button">×</button></a>`
+ }).join("");
+ document.querySelectorAll("[data-a]").forEach(b=>b.onclick=(e)=>{e.preventDefault();e.stopPropagation();currentAttachments.splice(+b.dataset.a,1);renderAttachments();autosave()})
+}
+function renderLinks(){
+ if(!settings.richLinks){$("linkPreviewArea").innerHTML="";return}
+ const bodyText=$("noteBody")?.innerText||"";
+  const urls=[...bodyText.matchAll(/https?:\/\/[^\s]+/g)].map(x=>x[0].replace(/[),.;]+$/,""));
+ const unique=[...new Set(urls)];
+ $("linkPreviewArea").innerHTML=unique.map(url=>{
+   let host=url;try{host=new URL(url).hostname}catch(e){}
+   const title=/mgeko/i.test(host)?"Mgeko Browser":/manhuarmtl/i.test(host)?"Chapter link":host;
+   return `<a class="link-card" href="${esc(url)}" target="_blank" rel="noopener">
+     <div class="link-thumb">${/mgeko/i.test(host)?"◎":"✦"}</div>
+     <div class="link-info"><div class="link-title">${esc(title)}</div><div class="link-host">${esc(host)}</div></div>
+   </a>`
+ }).join("")
+}
+
+
+/* ---------------- Formatting / color/background ---------------- */
+const BACKGROUNDS=[
+{id:"",label:"None",css:"none",icon:""},
+{id:"leaf",label:"Leaf",css:"radial-gradient(circle at 20% 25%,#3f7557 0 9%,transparent 10%),radial-gradient(circle at 70% 60%,#6d4c58 0 11%,transparent 12%),linear-gradient(135deg,#28233a,#17342d)",icon:"❧"},
+{id:"violet",label:"Violet",css:"radial-gradient(circle at 55% 25%,#5142a3 0 20%,transparent 21%),linear-gradient(135deg,#171b46,#3f2f79)",icon:"✦"},
+{id:"forest",label:"Forest",css:"radial-gradient(circle at 25% 30%,#7b4654 0 18%,transparent 19%),radial-gradient(circle at 72% 58%,#4d6d48 0 17%,transparent 18%),linear-gradient(135deg,#29372f,#553d48)",icon:"♣"},
+{id:"film",label:"Film",css:"repeating-linear-gradient(135deg,#505b75 0 12px,#343c52 12px 24px)",icon:"▥"},
+{id:"burst",label:"Burst",css:"radial-gradient(circle,#26345c 0 8%,transparent 9%),repeating-conic-gradient(from 0deg,#182041 0 12deg,#26345c 12deg 24deg)",icon:"✺"},
+{id:"paper",label:"Paper",css:"repeating-linear-gradient(0deg,#3a3039 0 2px,#29232b 2px 12px)",icon:""},
+{id:"sunset",label:"Sunset",css:"radial-gradient(circle at 80% 20%,#d77b58 0 15%,transparent 16%),linear-gradient(160deg,#5d3147,#28324b)",icon:"☼"}
+];
+function applyEditorBackground(){
+ const ed=document.querySelector(".note-editor");
+ const b=BACKGROUNDS.find(x=>x.id===currentBackground);
+ ed.style.backgroundImage=(b&&b.css!=="none")?b.css:"none";
+}
+function showStyleSheet(){
+ const colors=["","#9b1738","#87351e","#965f05","#24553f","#08756e","#2d6b88","#573a79"];
+ $("styleSheetBox").innerHTML=`<h2>Color</h2>
+ <div class="swatches">${colors.map(c=>`<button class="swatch ${currentColor===c?"selected":""}" data-color="${c}" style="background:${c||"var(--surface2)"}">${!c?"✓":""}</button>`).join("")}</div>
+ <h2>Background</h2>
+ <div class="bg-grid">${BACKGROUNDS.map(b=>`<button class="bg-choice ${currentBackground===b.id?"selected":""}" data-bg="${b.id}" title="${b.label}" style="background:${b.css}"><span>${b.icon}</span></button>`).join("")}</div>
+ <div class="dialog-actions" style="margin-top:20px"><button class="action secondary" id="styleClose">Done</button></div>`;
+ $("styleSheet").classList.add("show");
+ document.querySelectorAll("[data-color]").forEach(x=>x.onclick=()=>{currentColor=x.dataset.color;applyEditorBackground();showStyleSheet();collectEditor()});
+ document.querySelectorAll("[data-bg]").forEach(x=>x.onclick=()=>{currentBackground=x.dataset.bg;applyEditorBackground();showStyleSheet();collectEditor()});
+ $("styleClose").onclick=closeStyleSheet;
+}
+function closeStyleSheet(){$("styleSheet").classList.remove("show")}
+$("styleSheet").onclick=e=>{if(e.target.id==="styleSheet")closeStyleSheet()};
+$("colorBtn").onclick=showStyleSheet;
+
+function formatText(kind){
+ if(currentType!=="text"){toast("Formatting is available in text notes");return}
+ const ed=$("noteBody"); ed.focus();
+ try{
+   if(kind==="bold")document.execCommand("bold");
+   else if(kind==="italic")document.execCommand("italic");
+   else if(kind==="underline")document.execCommand("underline");
+   else if(kind==="strike")document.execCommand("strikeThrough");
+   else if(kind==="h1")document.execCommand("formatBlock",false,"h1");
+   else if(kind==="h2")document.execCommand("formatBlock",false,"h2");
+   else if(kind==="clear"){document.execCommand("removeFormat");document.execCommand("formatBlock",false,"div");}
+   else if(kind==="plain"){document.execCommand("formatBlock",false,"div");}
+   autosave();renderLinks();
+ }catch(e){toast("Formatting unavailable on this browser")}
+}
+document.querySelectorAll("#formatTools [data-format]").forEach(b=>{b.addEventListener("mousedown",e=>e.preventDefault());b.onclick=()=>formatText(b.dataset.format)});
+
+/* Rich editor keyboard helpers */
+$("noteBody").addEventListener("keydown",e=>{
+ if(e.key==="Tab"){e.preventDefault();document.execCommand("insertText",false,"\t")}
+});
+
+/* ---------------- Labels ---------------- */
+function renderLabelsPage(){
+ const labelNames=[...new Set([...labels,...notes.filter(n=>!n.deleted&&n.label).map(n=>n.label)])].sort();
+ $("homeScreen").innerHTML=`<div class="topbar"><button class="icon" id="labelsBack">${ICONS.back}</button><h1>Edit labels</h1><div style="width:46px"></div></div>
+ <main class="page-body"><button class="list-item" id="newLabel" style="width:100%;text-align:left"><div class="li-icon" style="font-size:30px;background:none">＋</div><div class="li-text" style="color:var(--muted)">Create new label</div></button>
+ <div id="labelManager">${labelNames.map(l=>`<div class="label-edit-row"><div class="tagicon">#</div><button class="labelname" data-open-label="${esc(l)}">${esc(l)}</button><button class="pencil" data-edit-label="${esc(l)}">✎</button></div>`).join("")}</div>
+ ${!labelNames.length?`<div class="empty"><div class="big">#</div><div>No labels yet</div></div>`:""}</main>`;
+ $("labelsBack").onclick=()=>restoreHome();$("newLabel").onclick=()=>showLabelEditor();
+ document.querySelectorAll("[data-edit-label]").forEach(b=>b.onclick=()=>showLabelEditor(b.dataset.editLabel));
+ document.querySelectorAll("[data-open-label]").forEach(b=>b.onclick=()=>openLabel(b.dataset.openLabel));
+}
+function showLabelEditor(old=""){
+ dialog(`<h2>${old?"Edit label":"Create new label"}</h2><input id="labelNameInput" maxlength="40" value="${esc(old)}" placeholder="Label name">
+ <div class="dialog-actions"><button class="action secondary" id="cancelDialog">Cancel</button>${old?`<button class="action danger" id="deleteLabel">Delete</button>`:""}<button class="action primary" id="saveLabelEditor">Save</button></div>`);
+ $("cancelDialog").onclick=closeDialog;
+ $("saveLabelEditor").onclick=()=>{
+  const name=$("labelNameInput").value.trim();if(!name)return toast("Enter a label name");
+  if(old&&old!==name){notes.forEach(n=>{if(n.label===old)n.label=name});labels=labels.filter(x=>x!==old)}
+  if(!labels.includes(name))labels.push(name);
+  save();saveLabels();closeDialog();renderLabelsPage();renderLabels();toast(old?"Label renamed":"Label created");
+ };
+ $("deleteLabel")?.addEventListener("click",()=>{if(confirm(`Delete label "${old}"? Notes will be kept.`)){notes.forEach(n=>{if(n.label===old)n.label=""});labels=labels.filter(x=>x!==old);save();saveLabels();closeDialog();renderLabelsPage();renderLabels();toast("Label deleted")}});
+}
+function showNoteLabelDialog(){
+ const n=notes.find(x=>x.id===currentId);if(!n)return;
+ const noteLabels=[...new Set(notes.filter(x=>x.label&&!x.deleted).map(x=>x.label))].sort();
+ dialog(`<h2>Label</h2><select id="noteLabelSelect"><option value="">No label</option>${noteLabels.map(l=>`<option value="${esc(l)}" ${n.label===l?"selected":""}>${esc(l)}</option>`).join("")}</select>
+ <div class="dialog-actions"><button class="action secondary" id="cancelDialog">Cancel</button><button class="action primary" id="saveNoteLabel">Save</button></div>`);
+ $("cancelDialog").onclick=closeDialog;
+ $("saveNoteLabel").onclick=()=>{n.label=$("noteLabelSelect").value;if(n.label&&!labels.includes(n.label)){labels.push(n.label);saveLabels()}save();closeDialog();$("editorPop").classList.remove("show");toast(n.label?"Label added":"Label removed")};
+}
+/* ---------------- Editor actions ---------------- */
+$("editorPin").onclick=()=>{
+ const x=ensureCurrentNote();x.pinned=!x.pinned;$("editorPin").style.opacity=x.pinned?1:.55;save();toast(x.pinned?"Pinned":"Unpinned")
+}
+$("editorArchive").onclick=()=>{
+ const n=ensureCurrentNote();collectEditor();n.archived=!n.archived;save();toast(n.archived?"Moved to Archive":"Removed from Archive");closeEditor(false)
+}
+$("editorReminder").onclick=()=>showReminderDialog();
+function switchNoteType(nextType){
+ try{
+  if(nextType!=="text"&&nextType!=="checklist")return;
+  if(nextType===currentType){closeDialog();return}
+  if(nextType==="checklist"){
+   const text=$("noteBody")?.innerText||"";
+   const lines=text.split(/\r?\n+/).map(x=>x.trim()).filter(Boolean);
+   currentChecks=lines.map(x=>({text:x,done:false}));
+   currentType="checklist";
+   $("noteBody").innerHTML="";
+   $("noteBody").style.display="none";
+   $("checkEditor").classList.add("show");
+   renderChecks();
+  }else{
+   $("noteBody").innerHTML=currentChecks.map(x=>`<div>${esc(x.text)}</div>`).join("");
+   $("noteBody").style.display="block";
+   $("checkEditor").classList.remove("show");
+   currentType="text";
+   renderLinks();
+  }
+  if(typeof editorHasContent==="function"&&editorHasContent())collectEditor();
+  closeDialog();
+  updateTypeButton();
+  toast(currentType==="checklist"?"Checklist mode":"Text mode");
+ }catch(err){
+  console.error("PRAITH type switch failed:",err);
+  closeDialog();
+  toast("Couldn't change note type — try again");
+ }
+}
+function updateTypeButton(){
+ const btn=$("typeBtn");
+ if(!btn)return;
+ btn.setAttribute("aria-label",currentType==="checklist"?"Note type: Checklist":"Note type: Text");
+ btn.title=currentType==="checklist"?"Note type: Checklist":"Note type: Text";
+ btn.classList.toggle("active",currentType==="checklist");
+}
+$("typeBtn").onclick=()=>{
+ dialog(`<h2>Note type</h2>
+  <div class="dialog-list">
+   <button class="list-item" id="typeTextOption"><span class="li-icon">T</span><span class="li-text"><b>Text note</b><small>Rich text with headings and formatting</small></span></button>
+   <button class="list-item" id="typeChecklistOption"><span class="li-icon">☑</span><span class="li-text"><b>Checklist</b><small>Tasks with checkboxes</small></span></button>
+  </div>`);
+ $("typeTextOption").onclick=()=>switchNoteType("text");
+ $("typeChecklistOption").onclick=()=>switchNoteType("checklist");
+};
+// colorBtn uses showStyleSheet()
+$("editorMoreBtn").onclick=()=>$("editorPop").classList.toggle("show");
+$("labelBtn").onclick=showNoteLabelDialog;
+$("deleteBtn").onclick=()=>{
+ const n=ensureCurrentNote();collectEditor();n.deleted=true;n.archived=false;save();toast("Moved to Trash");closeEditor(false)
+}
+$("labelNoteBtn").onclick=()=>{showNoteLabelDialog();$("editorPop").classList.remove("show")}
+function showNoteLabelDialog(){
+ const n=ensureCurrentNote();
+ const noteLabels=[...new Set([...labels,...notes.filter(x=>x.label&&!x.deleted).map(x=>x.label)])].sort();
+ dialog(`<h2>Label note</h2><input id="labelNoteInput" maxlength="40" placeholder="Type a label" value="${esc(n.label||"")}">
+ <div style="margin:5px 0 12px">${noteLabels.map(l=>`<button class="label-chip" data-use-label="${esc(l)}">#${esc(l)}</button>`).join("")}</div>
+ <div class="dialog-actions"><button class="action secondary" id="cancelDialog">Cancel</button><button class="action danger" id="clearLabel">Clear</button><button class="action primary" id="saveNoteLabel">Save</button></div>`);
+ $("cancelDialog").onclick=closeDialog;
+ $("clearLabel").onclick=()=>{n.label="";save();closeDialog();renderHome();toast("Label removed")};
+ $("saveNoteLabel").onclick=()=>{n.label=$("labelNoteInput").value.trim();if(n.label&&!labels.includes(n.label))labels.push(n.label);save();saveLabels();closeDialog();toast(n.label?"Label added":"Label removed")};
+ document.querySelectorAll("[data-use-label]").forEach(b=>b.onclick=()=>{$("labelNoteInput").value=b.dataset.useLabel});
+}
+$("duplicateBtn").onclick=()=>{
+ const n=ensureCurrentNote();collectEditor();const c=structuredClone(n);c.id=uid();c.title=(c.title||"Untitled")+" copy";c.updated=Date.now();notes.unshift(c);save();toast("Note duplicated");closeEditor(false)
+}
+$("shareBtn").onclick=async()=>{
+ if(!settings.sharing){toast("Sharing is disabled in Settings");return}
+ const n=ensureCurrentNote();
+ collectEditor();const text=(n.title? n.title+"\n":"")+ (n.body||n.checks.map(x=>(x.done?"☑ ":"☐ ")+x.text).join("\n"));
+ try{
+   if(navigator.share)await navigator.share({title:n.title||"PRAITH Note",text});
+   else await navigator.clipboard.writeText(text),toast("Copied note to clipboard")
+ }catch(e){}
+ $("editorPop").classList.remove("show")
+}
+
+/* ---------------- Attachments ---------------- */
+$("attachBtn").onclick=()=>showAttachmentDialog();
+function showAttachmentDialog(){
+ dialog(`<h2>Add to note</h2>
+ <button class="action secondary" style="width:100%;margin:4px 0" id="pickImage">▧ Add image</button>
+ <button class="action secondary" style="width:100%;margin:4px 0" id="pickFile">📎 Add file</button>
+ <button class="action secondary" style="width:100%;margin:4px 0" id="recordAudio">● Record audio</button>
+ <button class="action secondary" style="width:100%;margin:4px 0" id="speechBtn">♩ Voice to text</button>
+ <div class="dialog-actions"><button class="action secondary" id="cancelDialog">Cancel</button></div>`);
+ $("pickImage").onclick=()=>{$("imageInput").click();closeDialog()};
+ $("pickFile").onclick=()=>{$("fileInput").click();closeDialog()};
+ $("recordAudio").onclick=()=>{closeDialog();startRecording()};
+ $("speechBtn").onclick=()=>{closeDialog();voiceToText()};
+ $("cancelDialog").onclick=closeDialog;
+}
+$("imageInput").onchange=async e=>{
+ for(const file of e.target.files){
+  const data=await readData(file);currentAttachments.push({id:uid(),type:"image",name:file.name,data});renderAttachments()
+ }
+ e.target.value="";autosave()
+}
+$("fileInput").onchange=async e=>{
+ const file=e.target.files[0];if(!file)return;
+ if(file.type==="audio"){const data=await readData(file);currentAttachments.push({id:uid(),type:"audio",name:file.name,data})}
+ else if(file.type==="image"){const data=await readData(file);currentAttachments.push({id:uid(),type:"image",name:file.name,data})}
+ else if(file.type==="application/json"){return}else{
+   const data=await readData(file);currentAttachments.push({id:uid(),type:"file",name:file.name,data})
+ }
+ renderAttachments();e.target.value="";autosave()
+}
+function readData(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)})}
+
+/* ---------------- Voice / recording ---------------- */
+async function startRecording(){
+ if(recording?.state==="recording"){recording.stop();return}
+ if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){toast("Audio recording is not supported here");return}
+ try{
+  const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+  recordChunks=[];recording=new MediaRecorder(stream);
+  recording.ondataavailable=e=>{if(e.data.size)recordChunks.push(e.data)};
+  recording.onstop=()=>{
+   const blob=new Blob(recordChunks,{type:recording.mimeType||"audio/webm"});
+   const r=new FileReader();r.onload=()=>{currentAttachments.push({id:uid(),type:"audio",name:"Voice note",data:r.result});renderAttachments();autosave();toast("Voice note saved")};r.readAsDataURL(blob);
+   stream.getTracks().forEach(t=>t.stop());recording=null;closeDialog()
+  };
+  recording.start();
+  dialog(`<h2>Recording voice note</h2><div style="text-align:center;padding:20px;color:var(--muted)">● Recording…</div>
+   <div class="dialog-actions"><button class="action danger" id="stopRecording">Stop recording</button></div>`);
+  $("stopRecording").onclick=()=>{if(recording?.state==="recording")recording.stop()};
+ }catch(e){toast("Microphone permission was denied")}
+}
+function voiceToText(){
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){toast("Voice typing isn't supported in this browser");return}
+ const r=new SR();r.lang=navigator.language||"en-IN";r.interimResults=true;r.continuous=false;
+ toast("Listening…");
+ r.onresult=e=>{
+  const t=[...e.results].map(x=>x[0].transcript).join("");
+  if(currentType==="text"){
+   const ed=$("noteBody");ed.focus();
+   const prefix=ed.innerText.trim()?" ":"";
+   document.execCommand("insertText",false,prefix+t)
+  }
+  else{currentChecks.push({text:t,done:false});renderChecks()}
+  renderLinks();autosave()
+ };
+ r.onerror=()=>toast("Voice input stopped");
+ r.start()
+}
+
+/* ---------------- Google account ---------------- */
+const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID";
+const ACCOUNT_KEY = "praith_google_account_v1";
+let googleAccount = safeJSON(localStorage.getItem(ACCOUNT_KEY), null);
+
+function accountIconSvg(){
+ return `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2"></circle><path d="M5.5 20c.8-3.4 3-5.1 6.5-5.1s5.7 1.7 6.5 5.1"></path></svg>`;
+}
+function updateProfileButton(){
+ const b=$("profileBtn"); if(!b)return;
+ b.innerHTML=googleAccount?.picture
+   ? `<img src="${esc(googleAccount.picture)}" alt="">`
+   : accountIconSvg();
+ b.title=googleAccount?.email||"Google account";
+}
+function openAccountDialog(){
+ const a=googleAccount;
+ const signed=a?`
+   <div class="account-head">
+     <div class="account-avatar">${a.picture?`<img src="${esc(a.picture)}" alt="">`:esc((a.name||a.email||"G").trim().charAt(0).toUpperCase())}</div>
+     <div><div class="account-name">${esc(a.name||"Google Account")}</div>
+     <div class="account-email">${esc(a.email||"")}</div>
+     <div class="account-status">● Signed in</div></div>
+   </div>
+   <button class="action secondary" id="googleSignOut" style="width:100%">Sign out</button>
+   <div class="account-note">Your Google profile is stored locally in this HTML app. Note syncing is not enabled by login alone.</div>
+ `:`<div>
+   <div class="account-head">
+     <div class="account-avatar">${accountIconSvg()}</div>
+     <div><div class="account-name">PRAITH Notes</div><div class="account-email">Sign in with your Google account</div></div>
+   </div>
+   <div class="google-login-wrap" id="googleLoginButton"></div>
+   <div class="account-note">Google Sign-In requires a Google OAuth Client ID and a secure web origin. If this app is packaged as an Android WebView, use native Android Google Credential Manager instead.</div>
+ </div>`;
+ $("accountDialogBox").innerHTML=signed;
+ $("accountDialog").classList.add("show");
+ if(a){
+   $("googleSignOut").onclick=()=>{googleAccount=null;localStorage.removeItem(ACCOUNT_KEY);closeAccountDialog();updateProfileButton();toast("Signed out")}
+ }else{
+   renderGoogleButton();
+ }
+}
+function closeAccountDialog(){$("accountDialog").classList.remove("show");$("accountDialogBox").innerHTML=""}
+$("accountDialog").onclick=e=>{if(e.target.id==="accountDialog")closeAccountDialog()};
+
+function decodeJwtPayload(jwt){
+ try{
+   const part=jwt.split(".")[1]; if(!part) return null;
+   const b64=part.replace(/-/g,"+").replace(/_/g,"/");
+   const json=decodeURIComponent(atob(b64).split("").map(c=>"%"+("00"+c.charCodeAt(0).toString(16)).slice(-2)).join(""));
+   return JSON.parse(json);
+ }catch(e){return null}
+}
+function handleGoogleCredential(response){
+ const p=decodeJwtPayload(response?.credential||"");
+ if(!p?.sub){toast("Google sign-in failed");return}
+ googleAccount={sub:p.sub,name:p.name||"",email:p.email||"",picture:p.picture||"",signedInAt:Date.now()};
+ localStorage.setItem(ACCOUNT_KEY,JSON.stringify(googleAccount));
+ closeAccountDialog();updateProfileButton();toast("Signed in as "+(googleAccount.name||googleAccount.email||"Google user"));
+}
+function renderGoogleButton(){
+ const el=$("googleLoginButton");
+ if(!el)return;
+ if(GOOGLE_CLIENT_ID==="YOUR_GOOGLE_CLIENT_ID"){
+   el.innerHTML=`<button class="action primary" id="googleSetupButton" style="width:100%">Set up Google Sign-In</button>`;
+   $("googleSetupButton").onclick=()=>{
+     closeAccountDialog();
+     dialog(`<h2>Google Sign-In setup</h2>
+       <p style="line-height:1.5;color:var(--muted)">Create a Google OAuth 2.0 Web Client ID, then replace <b>YOUR_GOOGLE_CLIENT_ID</b> in this file. Google requires an authorized JavaScript origin for the app.</p>
+       <div class="dialog-actions"><button class="action primary" id="setupOk">OK</button></div>`);
+     $("setupOk").onclick=closeDialog;
+   };
+   return;
+ }
+ const start=()=>{
+   if(!window.google?.accounts?.id){toast("Google Sign-In is still loading");return}
+   google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,callback:handleGoogleCredential,ux_mode:"popup"});
+   el.innerHTML="";
+   google.accounts.id.renderButton(el,{type:"standard",theme:document.body.classList.contains("light")?"outline":"filled_black",
+     size:"large",text:"continue_with",shape:"pill",width:300});
+ };
+ if(window.google?.accounts?.id)start();else setTimeout(start,700);
+}
+function bindProfileButton(){
+ const b=$("profileBtn");if(!b)return;
+ b.onclick=openAccountDialog;updateProfileButton();
+}
+
+/* ---------------- Dialogs ---------------- */
+function dialog(content){$("dialogBox").innerHTML=content;$("dialog").classList.add("show")}
+function closeDialog(){$("dialog").classList.remove("show");$("dialogBox").innerHTML=""}
+$("dialog").onclick=e=>{if(e.target.id==="dialog")closeDialog()}
+
+function showColorDialog(){
+ const colors=[""," #211b23","#49384f","#3e4a3c","#4d4330","#3a4653","#5a3538","#3d3b50"];
+ dialog(`<h2>Note color</h2><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+ ${colors.map(c=>`<button class="colorPick" data-c="${c.trim()}" style="height:55px;border-radius:15px;border:1px solid var(--line);background:${c.trim()||"var(--surface2)"}"></button>`).join("")}</div>
+ <div class="dialog-actions"><button class="action secondary" id="cancelDialog">Cancel</button></div>`);
+ document.querySelectorAll(".colorPick").forEach(b=>b.onclick=()=>{currentColor=b.dataset.c;closeDialog();toast("Color updated");autosave()});
+ $("cancelDialog").onclick=closeDialog
+}
+function showReminderDialog(){
+ const n=currentId?notes.find(x=>x.id===currentId):null;const value=n?.reminder?new Date(n.reminder).toISOString().slice(0,16):"";
+ dialog(`<h2>Set reminder</h2><input id="reminderInput" type="datetime-local" value="${value}">
+ <div class="dialog-actions"><button class="action secondary" id="cancelDialog">Cancel</button>
+ <button class="action danger" id="removeReminder">Remove</button><button class="action primary" id="saveReminder">Save</button></div>`);
+ $("cancelDialog").onclick=closeDialog;
+ $("removeReminder").onclick=()=>{if(n)n.reminder=null;save();closeDialog();toast("Reminder removed")};
+ $("saveReminder").onclick=()=>{const v=$("reminderInput").value;if(!v)return toast("Choose a date and time");const target=ensureCurrentNote();target.reminder=new Date(v).getTime();save();closeDialog();scheduleReminders();if("Notification" in window&&Notification.permission==="default")Notification.requestPermission();toast("Reminder set")}
+}
+
+/* ---------------- Drawer / routes ---------------- */
+function openDrawer(){$("drawer").classList.add("show");$("drawerShade").classList.add("show")}
+function closeDrawer(){$("drawer").classList.remove("show");$("drawerShade").classList.remove("show")}
+$("menuBtn").onclick=openDrawer;$("drawerShade").onclick=closeDrawer;
+document.querySelectorAll(".nav[data-route]").forEach(b=>b.onclick=()=>{closeDrawer();route(b.dataset.route)});
+$("createLabelBtn").onclick=()=>{closeDrawer();showLabelDialog()};
+$("editLabelsBtn").onclick=()=>{closeDrawer();renderLabelsPage()};
+function route(name){
+ clearSelection();currentRoute=name;$("homeScreen").classList.remove("hidden");$("editorScreen").classList.remove("show");
+ if(name==="notes"){renderHome();return}
+ if(name==="archive")return renderArchive();
+ if(name==="trash")return renderTrash();
+ if(name==="reminders")return renderReminders();
+ if(name==="settings")return renderSettings();
+ if(name==="help")return renderHelp();
+}
+function setHomeTitle(title,back=true){
+ const h=document.querySelector("#homeScreen .topbar h1");h.textContent=title;
+ $("menuBtn").innerHTML=back?ICONS.back:ICONS.menu;
+ $("menuBtn").onclick=back?()=>route("notes"):openDrawer;
+ $("viewBtn").style.display=back?"none":"grid";
+ $("homeMoreBtn").style.display=back?"grid":"grid";
+}
+function restoreHomeTop(){setHomeTitle("PRAITH Notes",false);$("viewBtn").style.display="grid"}
+function basePage(title,body){
+ $("homeScreen").classList.remove("hidden");$("editorScreen").classList.remove("show");
+ $("homeScreen").innerHTML=`<div class="topbar"><button class="icon" id="pageBack">${ICONS.back}</button><h1>${esc(title)}</h1><button class="icon" id="pageMore">${ICONS.more}</button></div><div class="page-body">${body}</div>`;
+ $("pageBack").onclick=()=>{location.hash="";restoreHome();route("notes")};
+}
+function restoreHome(){
+ clearSelection();currentRoute="notes";selectionSource="notes";
+ $("homeScreen").innerHTML=`
+ <div class="topbar"><button class="icon" id="menuBtn">${ICONS.menu}</button><h1>PRAITH Notes</h1>
+ <button class="icon" id="viewBtn">${settings.view==="list"?ICONS.list:ICONS.grid}</button><button class="profile-btn" id="profileBtn" aria-label="Google account"></button><button class="icon" id="homeMoreBtn">${ICONS.more}</button></div>
+ <div class="search"><span>${ICONS.search}</span><input id="searchInput" placeholder="Search your notes" autocomplete="off"></div>
+ <main class="content"><div id="pinnedSection"><div class="section">Pinned</div><div class="grid" id="pinnedGrid"></div></div>
+ <div class="section" id="notesSection">Notes</div><div class="grid" id="notesGrid"></div>
+ <div class="empty hidden" id="homeEmpty"><div class="big">📝</div><div>No notes yet</div><small>Tap + to create your first note.</small></div></main>
+ <button class="fab" id="fab">+</button>`;
+ $("menuBtn").onclick=openDrawer;$("profileBtn").onclick=openAccountDialog;$("homeMoreBtn").onclick=()=>$("homePop").classList.toggle("show");updateProfileButton();
+ $("selectNotesBtn").onclick=()=>{selectionSource="notes";selectionArmed=true;$("homePop").classList.remove("show");toast("Tap notes to select • Long-press also works")};
+ $("viewBtn").onclick=()=>{settings.view=settings.view==="list"?"grid":"list";saveSettings();$("viewBtn").innerHTML=settings.view==="list"?ICONS.list:ICONS.grid;applyTheme();renderHome()};
+ $("fab").onclick=()=>openEditor();$("searchInput").oninput=renderHome;renderHome()
+}
+function renderArchive(keepSelection=false){
+ currentRoute="archive";selectionSource="archive";$("homePop").classList.remove("show");const list=visibleList(notes.filter(n=>n.archived&&!n.deleted));
+ $("homeScreen").innerHTML=`<div class="topbar"><button class="icon" id="archiveBack">${ICONS.back}</button><h1>Archive</h1><button class="icon" id="archiveMore">${ICONS.more}</button></div><main class="content">${list.length?`<div class="grid" id="routeGrid">${list.map(card).join("")}</div>`:`<div class="empty"><div class="big">▣</div><div>No archived notes</div></div>`}</main>`;
+ $("archiveBack").onclick=()=>{clearSelection();restoreHome()};$("archiveMore").onclick=()=>{if(selectedIds.size)selectionMenu();else toast("Long-press a note to select it")};bindSelectableCards("#routeGrid");if(!keepSelection)clearSelection();else if(selectedIds.size)ensureSelectionBar();
+}
+function renderTrash(){
+ $("homeScreen").innerHTML=`<div class="topbar"><button class="icon" id="trashBack">${ICONS.back}</button><h1>Trash</h1><button class="icon" id="emptyTrash">⋮</button></div>`;
+ const list=notes.filter(n=>n.deleted);
+ if(!list.length)$("homeScreen").innerHTML+=`<div class="trash-empty"><div><div style="font-size:80px">🗑</div><div style="font-size:18px;color:var(--text)">No notes in Trash</div></div></div>`;
+ else $("homeScreen").innerHTML+=`<main class="content"><div class="grid">${list.map(n=>`<article class="note-card" data-id="${n.id}"><h3>${esc(n.title||"Untitled")}</h3><p>${esc(n.body)}</p><button class="action secondary" data-restore="${n.id}" style="margin-top:12px">Restore</button><button class="action danger" data-forever="${n.id}">Delete forever</button></article>`).join("")}</div></main>`;
+ $("trashBack").onclick=()=>restoreHome();
+ $("emptyTrash").onclick=()=>{if(confirm("Permanently delete everything in Trash?")){notes=notes.filter(n=>!n.deleted);save();renderTrash()}};
+ document.querySelectorAll("[data-restore]").forEach(b=>b.onclick=()=>{const n=notes.find(x=>x.id===b.dataset.restore);n.deleted=false;save();renderTrash();toast("Restored")});
+ document.querySelectorAll("[data-forever]").forEach(b=>b.onclick=()=>{notes=notes.filter(x=>x.id!==b.dataset.forever);save();renderTrash();toast("Deleted forever")});
+}
+function renderReminders(){
+ const all=notes.filter(n=>n.reminder&&!n.deleted&&!n.archived).sort((a,b)=>a.reminder-b.reminder);
+ const screen=`<div class="topbar"><button class="icon" id="remBack">${ICONS.back}</button><h1>Reminders</h1><button class="icon" id="remSearch">${ICONS.search}</button><button class="icon" id="remView">${ICONS.list}</button></div><div id="reminderSearchWrap" class="search hidden"><span>${ICONS.search}</span><input id="reminderSearchInput" placeholder="Search reminders" autocomplete="off"></div><div id="reminderContent"></div>`;
+ $("homeScreen").innerHTML=screen;
+ const renderContent=()=>{
+  const q=$("reminderSearchInput").value.trim().toLowerCase();
+  const list=all.filter(n=>(n.title+" "+n.body).toLowerCase().includes(q));
+  $("reminderContent").innerHTML=list.length?`<main class="content">${list.map(n=>`<article class="reminder-card" data-rem="${n.id}"><strong>${esc(n.title||"Untitled")}</strong><small>${new Date(n.reminder).toLocaleString()}</small></article>`).join("")}</main>${q?"":`<button class="fab" id="remFab">+</button>`}`:`<div class="trash-empty"><div><div style="font-size:90px">♧</div><div style="font-size:18px;color:var(--text)">${q?"No matching reminders":"Notes with upcoming reminders appear here"}</div></div></div>`;
+  document.querySelectorAll("[data-rem]").forEach(e=>e.onclick=()=>openEditor(e.dataset.rem));
+  $("remFab")?.addEventListener("click",()=>openEditor());
+ };
+ $("remBack").onclick=()=>restoreHome();
+ $("remSearch").onclick=()=>{$("reminderSearchWrap").classList.toggle("hidden");if(!$('reminderSearchWrap').classList.contains('hidden'))$('reminderSearchInput').focus()};
+ $("reminderSearchInput").oninput=renderContent;
+ $("remView").onclick=()=>{settings.view=settings.view==="list"?"grid":"list";saveSettings();applyTheme()};
+ renderContent();
+}
+function renderSettings(){
+ const toggle=(key)=>`<button class="switch ${settings[key]?"on":""}" data-toggle="${key}" aria-label="Toggle"></button>`;
+ $("homeScreen").innerHTML=`<div class="topbar"><button class="icon" id="setBack">${ICONS.back}</button><h1>Settings</h1><button class="icon" id="setMore">${ICONS.more}</button></div>
+ <main class="page-body">
+ <div class="settings-group"><h2>Display options</h2>
+ <div class="setting-row"><div class="grow"><div class="name">Add new items to bottom</div></div>${toggle("addBottom")}</div>
+ <div class="setting-row"><div class="grow"><div class="name">Move checked items to bottom</div></div>${toggle("moveCheckedBottom")}</div>
+ <div class="setting-row"><div class="grow"><div class="name">Display rich link previews</div></div>${toggle("richLinks")}</div>
+ <div class="select-row"><span>Theme</span><button id="themeSelect">${settings.theme==="dark"?"Dark":settings.theme==="light"?"Light":"System default"} ›</button></div></div>
+ <div class="settings-group"><h2>Note creation</h2>
+ <div class="setting-row"><div class="grow"><div class="name">Create checklist notes by default</div><div class="sub">You can change the type from the note toolbar.</div></div>${toggle("defaultChecklist")}</div></div>
+ <div class="settings-group"><h2>Sharing</h2>
+ <div class="setting-row"><div class="grow"><div class="name">Enable sharing</div></div>${toggle("sharing")}</div></div>
+ <div class="settings-group"><h2>Data</h2>
+ <button class="list-item" id="exportSettings" style="width:100%;text-align:left"><div class="li-icon">⇩</div><div class="li-text">Export all notes<small>Save a backup file</small></div></button>
+ <button class="list-item" id="importSettings" style="width:100%;text-align:left"><div class="li-icon">⇧</div><div class="li-text">Import notes<small>Restore a backup</small></div></button>
+ </div></main>`;
+ $("setBack").onclick=()=>restoreHome();$("setMore").onclick=()=>toast("PRAITH Notes settings");
+ document.querySelectorAll("[data-toggle]").forEach(b=>b.onclick=()=>{const k=b.dataset.toggle;settings[k]=!settings[k];saveSettings();renderSettings()});
+ $("themeSelect").onclick=()=>{settings.theme=settings.theme==="dark"?"light":settings.theme==="light"?"system":"dark";applyTheme();saveSettings();renderSettings()};
+ $("exportSettings").onclick=exportNotes;$("importSettings").onclick=()=>$("fileInput").click()
+}
+function renderHelp(){
+ const items=[
+ ["How to use PRAITH Notes","Create, edit, pin, archive and organize your notes."],
+ ["Fix problems with PRAITH Notes","Quick checks for storage, permissions and browser support."],
+ ["Create or edit a note","Open a note and use the toolbar for type, color, attachments and reminders."],
+ ["Make a list","Switch a note to checklist mode and add items."],
+ ["Set up reminders","Open a note, tap the bell and choose a date and time."]
+ ];
+ $("homeScreen").innerHTML=`<div class="topbar"><button class="icon" id="helpBack">${ICONS.back}</button><h1>Help</h1><button class="icon" id="helpMore">${ICONS.more}</button></div>
+ <main class="page-body"><div class="page-section-title" style="font-size:28px">Popular help resources</div>
+ <div id="helpItems">${items.map((x,i)=>`<button class="list-item help-card" style="width:100%;text-align:left" data-help="${i}"><div class="li-icon">${ICONS.help}</div><div class="li-text">${esc(x[0])}<small>${esc(x[1])}</small></div></button>`).join("")}</div>
+ <div class="search-help">${ICONS.search}<input id="helpSearch" placeholder="Search help"></div>
+ <div class="settings-group"><h2 style="font-size:22px">Need more help?</h2>
+ <button class="list-item" id="communityBtn" style="width:100%;text-align:left"><div class="li-icon">▣</div><div class="li-text">Post to the help community<small>Get answers and share feedback</small></div></button>
+ <button class="list-item" id="feedbackBtn" style="width:100%;text-align:left"><div class="li-icon">!</div><div class="li-text">Send Feedback<small>Tell us what should improve</small></div></button></div></main>`;
+ $("helpBack").onclick=()=>restoreHome();$("helpMore").onclick=()=>toast("Help menu");
+ document.querySelectorAll("[data-help]").forEach(b=>b.onclick=()=>toast(items[+b.dataset.help][0]));
+ $("helpSearch").oninput=e=>{const q=e.target.value.toLowerCase();document.querySelectorAll("[data-help]").forEach(b=>b.style.display=b.textContent.toLowerCase().includes(q)?"flex":"none")};
+ $("communityBtn").onclick=()=>toast("Community sharing will be available in the cloud version");
+ $("feedbackBtn").onclick=()=>{const text=prompt("What would you improve?");if(text)toast("Thanks for the feedback")}
+}
+function showLabelDialog(){
+ dialog(`<h2>Create new label</h2><input id="labelInput" maxlength="40" placeholder="Label name"><div class="dialog-actions"><button class="action secondary" id="cancelDialog">Cancel</button><button class="action primary" id="saveLabel">Create</button></div>`);
+ $("cancelDialog").onclick=closeDialog;$("saveLabel").onclick=()=>{const l=$("labelInput").value.trim();if(!l)return toast("Enter a label");if(!labels.includes(l))labels.push(l);saveLabels();closeDialog();renderLabels();toast("Label created")};
+}
+
+/* ---------------- Data ---------------- */
+function exportNotes(){
+ const blob=new Blob([JSON.stringify(notes,null,2)],{type:"application/json"});
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="praith-notes-backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast("Backup exported")
+}
+$("exportBtn").onclick=exportNotes;$("importBtn").onclick=()=>$("fileInput").click();
+$("fileInput").addEventListener("change",async e=>{
+ const f=e.target.files[0];if(!f)return;
+ if(f.type==="application/json"||f.name.endsWith(".json")){
+   try{const imported=JSON.parse(await f.text());if(!Array.isArray(imported))throw 0;
+   notes=imported.map(normalizeNote);notes.forEach(n=>{if(n.label&&!labels.includes(n.label))labels.push(n.label)});save();saveLabels();if($("editorScreen")?.classList.contains("show")){$("editorScreen").classList.remove("show");$("homeScreen").classList.remove("hidden");currentId=null}renderHome();toast("Notes imported")}catch(err){toast("Invalid backup file")}
+ } e.target.value=""
+})
+$("sortBtn").onclick=()=>{sortNewest=!sortNewest;$("homePop").classList.remove("show");renderHome();toast(sortNewest?"Newest first":"Oldest first")};
+$("themeBtn").onclick=()=>{settings.theme=settings.theme==="dark"?"light":"dark";applyTheme();saveSettings();$("homePop").classList.remove("show")};
+$("deleteAllBtn").onclick=()=>{if(confirm("Move all notes to Trash?")){notes.forEach(n=>{n.deleted=true;n.archived=false});save();renderHome();toast("Moved to Trash")}};
+
+/* ---------------- View / theme / reminders ---------------- */
+function applyTheme(){
+ const isLight=settings.theme==="light"||(settings.theme==="system"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches);
+ document.body.classList.toggle("light",isLight);
+ document.body.classList.toggle("list-view",settings.view==="list");
+ document.querySelector('meta[name="theme-color"]').setAttribute("content",isLight?"#f7f5f7":"#171218")
+}
+function scheduleReminders(){
+ clearTimeout(reminderTimer);
+ const upcoming=notes.filter(n=>n.reminder&&!n.deleted&&!n.archived&&n.reminder>Date.now()).sort((a,b)=>a.reminder-b.reminder)[0];
+ if(!upcoming)return;
+ const delay=Math.min(upcoming.reminder-Date.now(),2147483647);
+ reminderTimer=setTimeout(()=>fireReminder(upcoming),delay)
+}
+function fireReminder(n){
+ toast("Reminder: "+(n.title||"Untitled"));
+ if("Notification" in window&&Notification.permission==="granted")new Notification("PRAITH Notes",{body:n.title||"Reminder"});
+ scheduleReminders()
+}
+async function requestNotifications(){
+ if(!("Notification" in window))return toast("Notifications are not supported here");
+ try{const p=await Notification.requestPermission();toast(p==="granted"?"Notifications enabled":"Notifications not enabled")}catch(e){}
+}
+
+/* ---------------- Defensive error handling ---------------- */
+window.addEventListener("error",e=>{console.error(e.error||e.message);toast("Something went wrong — try again")});
+window.addEventListener("unhandledrejection",e=>{console.error(e.reason);toast("Action failed — try again")});
+
+/* ---------------- Home boot ---------------- */
+$("homeMoreBtn").onclick=()=>$("homePop").classList.toggle("show");
+$("profileBtn").onclick=openAccountDialog;updateProfileButton();
+$("viewBtn").onclick=()=>{settings.view=settings.view==="list"?"grid":"list";saveSettings();renderHome()};
+$("fab").onclick=()=>openEditor();
+document.addEventListener("click",e=>{
+ if(!e.target.closest("#homePop")&&!e.target.closest("#homeMoreBtn"))$("homePop").classList.remove("show");
+ if(!e.target.closest("#editorPop")&&!e.target.closest("#editorMoreBtn"))$("editorPop").classList.remove("show");
+ if(e.target.id==="accountDialog")closeAccountDialog();
+});
+save();saveLabels();saveSettings();applyTheme();if(window.matchMedia){window.matchMedia("(prefers-color-scheme: light)").addEventListener?.("change",()=>{if(settings.theme==="system")applyTheme()})}renderHome();scheduleReminders();
+
+/* keyboard / back */
+window.addEventListener("keydown",e=>{if(e.key==="Escape"){closeDialog();$("homePop").classList.remove("show");$("editorPop").classList.remove("show");closeDrawer()}});
+window.addEventListener("popstate",()=>{if($("editorScreen").classList.contains("show"))closeEditor(true)});
+</script>
+</body>
+</html>
